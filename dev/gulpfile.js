@@ -39,14 +39,14 @@ const
         style : 'uncompressed',
         path : 'I:/gulp/',
         err_title: "Ошибка при компиляции в CSS",
-        src_build : ['sass/*.scss'],
+        src_build : ['sass/*.sass'],
         src_libs : ['sass/css_js/*.css'],
         file_name: 'main.css',
         src_all : [
-            'sass/*.scss',
-            'sass/media/*.scss',
-            'sass/grid/*.scss',
-            'sass/ui/*.scss'
+            'sass/*.sass',
+            'sass/media/*.sass',
+            'sass/grid/*.sass',
+            'sass/ui/*.sass'
         ],
         dest: project_path+'/css'
     },
@@ -56,7 +56,6 @@ const
         src_build : ['js/*.js'],
         file_name: 'main.js',
         src_all : [
-            'I:/gulp/libs/js/*.js',
             'js/*.js'
         ],
         dest: project_path+'/js'
@@ -135,10 +134,10 @@ gulp.task('media_query',function () {
         .pipe(cmq({
             log: true
         }))
-        .pipe(autoprefixer({
+     /*   .pipe(autoprefixer({
             browsers: ['last 2 versions'],
             cascade: true
-        }))
+        }))*/
         .pipe(gulp.dest(project_path+'/css'));
 });
 gulp.task('min_css',function () {
@@ -147,17 +146,17 @@ gulp.task('min_css',function () {
             log: true
         }))
         .pipe(clean_CSS())
-        .pipe(autoprefixer({
+      /*  .pipe(autoprefixer({
             browsers: ['last 2 versions'],
             cascade: true
-        }))
+        }))*/
         .pipe(gulp.dest(project_path+'/css'));
 });
 gulp.task('js',function() {
-    return gulp.src(js['src_all'])
-        .pipe(
-            gulp.dest(js['dest'])
-        );
+  return gulp.src(js['src_all'])
+  .pipe(
+      gulp.dest(js['dest'])
+  ).pipe(reload({stream:true}));
 });
 gulp.task('min_js',function() {
     return gulp.src(js['src_all'])
@@ -172,15 +171,14 @@ gulp.task('min_js',function() {
 gulp.task('browserSync', function() {
     browserSync.init({
       server: {
-            baseDir: project_path,
-            index: "index.html",
-            serveStaticOptions: {
-                extensions: ["html"]
-            }
-        },
-        port: 80,
-        open: true,
-        notify: true
+        baseDir: project_path,
+        index: "index.html",
+        serveStaticOptions: {
+            extensions: ["html"]
+        }},
+      port: 80,
+      open: true,
+      notify: true
     });
 });
 gulp.task('move_images', function() {
@@ -209,28 +207,18 @@ gulp.task('min_main', function() {
         )
 });
 gulp.task('watch', function() {
-    gulp.watch(html['src_build'],['html']);
-    gulp.watch(html['src_all'],function () {
-        gulp.start('html')
-    });
-    gulp.watch(css['src_build'],['css']);
-    gulp.watch(css['src_libs'],['css_libs']);
-    gulp.watch(css['src_all'],function () {
-        gulp.start('css')
-    });
-    gulp.watch(js['src_all'],['js']);
-    gulp.watch(js['src_all'],function () {
-        gulp.start('js')
-    });
-    gulp.watch(img['src_all'],['move_images']);
-    gulp.watch(project_path+'/css/*.css',['media_query']);
-    gulp.start('default');
+    gulp.watch(html['src_all'],gulp.series('html'));
+    gulp.watch(css['src_build'],gulp.parallel('css'));
+    gulp.watch(css['src_all'],gulp.parallel('css'));
+    gulp.watch(js['src_all'],gulp.parallel('js'));
+    gulp.watch(img['src_all'],gulp.parallel('move_images'));
+    gulp.watch(project_path+'/css/!*.css',gulp.parallel('media_query'));
+
 });
 
+//gulp.task('minify',['min_main','min_css','min_js']);
 
 
-gulp.task('minify',['min_main','min_css','min_js']);
-
-
-gulp.task('default', ['watch','html','js', 'move_fonts','css' ,'css_libs','browserSync','move_images','media_query']);
+//gulp.task('default', ['watch','html','js', 'move_fonts','css' ,'css_libs','browserSync','move_images','media_query']);
+gulp.task('default', gulp.parallel('watch','html','js', 'move_fonts','css' ,'css_libs','browserSync','move_images','media_query')); //,'html','js', 'move_fonts','css' ,'css_libs','browserSync','move_images','media_query'));
 //gulp.task('default', [ 'watch','browserSync']);
